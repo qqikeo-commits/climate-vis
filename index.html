@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>全球地表气温百年时空演进与极地放大效应交互可视化平台</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@4.9.0/map/js/world.js"></script>
+  <style>
+    :root {
+      --bg-deep: #050914;
+      --bg-panel: rgba(12, 22, 44, 0.72);
+      --border-glow: rgba(56, 189, 248, 0.28);
+      --neon-cyan: #38bdf8;
+      --neon-rose: #f43f5e;
+      --neon-amber: #f59e0b;
+      --neon-purple: #a855f7;
+      --neon-emerald: #10b981;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-deep);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.08) 0%, transparent 35%),
+        radial-gradient(circle at 85% 80%, rgba(244, 63, 94, 0.07) 0%, transparent 35%),
+        linear-gradient(rgba(56, 189, 248, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56, 189, 248, 0.025) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+    }
+
+    /* 左侧赛博指挥舱导航栏 */
+    aside {
+      width: 268px;
+      min-width: 268px;
+      background: linear-gradient(180deg, rgba(9, 17, 34, 0.95) 0%, rgba(6, 11, 24, 0.98) 100%);
+      border-right: 1px solid var(--border-glow);
+      box-shadow: 6px 0 30px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      z-index: 30;
+    }
+
+    .brand {
+      height: 70px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 18px;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+      position: relative;
+    }
+    .brand::after {
+      content: "";
+      position: absolute;
+      bottom: -1px; left: 20px; width: 80px; height: 2px;
+      background: linear-gradient(90deg, var(--neon-cyan), transparent);
+    }
+    .brand-logo {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, #0284c7, #f43f5e);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 15px; color: #fff;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.5);
+    }
+    .brand-text h1 {
+      font-size: 14.5px; font-weight: 800; letter-spacing: 0.5px;
+      background: linear-gradient(90deg, #ffffff, #7dd3fc);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand-text p { font-size: 10.5px; color: var(--text-secondary); margin-top: 2px; }
+
+    nav {
+      flex: 1;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow-y: auto;
+    }
+    .nav-group-label {
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #64748b;
+      padding: 6px 10px 2px;
+      font-weight: 700;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 11px 14px;
+      border-radius: 8px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid transparent;
+      user-select: none;
+      position: relative;
+    }
+    .nav-item:hover {
+      background: rgba(56, 189, 248, 0.08);
+      color: #f8fafc;
+      transform: translateX(3px);
+    }
+    .nav-item.active {
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.2), rgba(56, 189, 248, 0.04));
+      border-color: rgba(56, 189, 248, 0.45);
+      color: #fff;
+      box-shadow: 0 4px 18px rgba(56, 189, 248, 0.18);
+    }
+    .nav-item.active::before {
+      content: "";
+      position: absolute; left: 0; top: 20%; bottom: 20%; width: 3px;
+      background: var(--neon-cyan);
+      border-radius: 0 3px 3px 0;
+      box-shadow: 0 0 8px var(--neon-cyan);
+    }
+    .nav-badge {
+      margin-left: auto;
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 10px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--neon-cyan);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .sidebar-footer {
+      padding: 12px 16px;
+      border-top: 1px solid rgba(56, 189, 248, 0.12);
+      font-size: 11px;
+      color: #64748b;
+      line-height: 1.5;
+      background: rgba(5, 9, 20, 0.6);
+    }
+
+    /* 主内容区 */
+    .app-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* 顶部指挥中心状态栏 */
+    header {
+      height: 70px;
+      background: rgba(8, 15, 32, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-glow);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 15;
+    }
+    .header-left { display: flex; flex-direction: column; gap: 3px; }
+    .header-title {
+      font-size: 16.5px; font-weight: 700; color: #f8fafc;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .live-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--neon-emerald);
+      box-shadow: 0 0 10px var(--neon-emerald);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.35); opacity: 0.6; }
+    }
+    .header-subtitle { font-size: 11.5px; color: var(--text-secondary); }
+
+    .header-actions { display: flex; gap: 12px; align-items: center; }
+    .kpi-card {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.55));
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      padding: 6px 14px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+    }
+    .kpi-card span { font-size: 10px; color: #94a3b8; }
+    .kpi-card b { font-size: 13.5px; color: var(--neon-cyan); margin-top: 1px; font-family: "Segoe UI", monospace; }
+    .kpi-card.danger b { color: var(--neon-rose); }
+
+    .btn-fullscreen {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(244, 63, 94, 0.25));
+      border: 1px solid var(--neon-cyan);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.25s;
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.25);
+    }
+    .btn-fullscreen:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 22px rgba(56, 189, 248, 0.5);
+    }
+
+    /* 多视图容器 */
+    .view-container {
+      flex: 1;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .page-view {
+      position: absolute;
+      top: 16px; left: 16px; right: 16px; bottom: 16px;
+      display: none;
+      pointer-events: none;
+      gap: 16px;
+    }
+    .page-view.active {
+      display: flex;
+      pointer-events: auto;
+      z-index: 5;
+    }
+
+    /* 华丽发光玻璃卡片 */
+    .panel {
+      flex: 1;
+      background: var(--bg-panel);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-glow);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      min-width: 0;
+      min-height: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    /* 四角科技感装饰线 */
+    .panel::after {
+      content: "";
+      position: absolute;
+      top: 0; right: 0;
+      width: 36px; height: 36px;
+      background: linear-gradient(225deg, rgba(56, 189, 248, 0.22) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    .panel-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-title::before {
+      content: "";
+      width: 4px; height: 14px;
+      background: linear-gradient(180deg, var(--neon-cyan), var(--neon-rose));
+      border-radius: 2px;
+      box-shadow: 0 0 8px var(--neon-cyan);
+    }
+    .panel-toolbar { display: flex; gap: 8px; align-items: center; }
+    .btn-tool {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 5px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.38);
+      color: var(--neon-cyan);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-tool:hover {
+      background: rgba(56, 189, 248, 0.3);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+    }
+    .chart-box { flex: 1; width: 100%; height: 100%; min-height: 0; }
+
+    select {
+      background: #0f172a;
+      color: #f8fafc;
+      border: 1px solid var(--neon-cyan);
+      padding: 4px 12px;
+      border-radius: 6px;
+      outline: none;
+      font-size: 12px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 左侧 7 大模块全景导航栏 -->
+  <aside>
+    <div class="brand">
+      <div class="brand-logo">TP</div>
+      <div class="brand-text">
+        <h1>气候时空演化平台</h1>
+        <p>Berkeley Earth 多维交互系统</p>
+      </div>
+    </div>
+    <nav>
+      <div class="nav-group-label">宏观与空间流场</div>
+      <div class="nav-item active" onclick="switchView('page-global', this)">
+        <span>🌍</span>
+        <span>1. 全球海陆与年代阶梯</span>
+        <span class="nav-badge">3图</span>
+      </div>
+      <div class="nav-item" onclick="switchView('page-map', this)">
+        <span>🗺️</span>
+        <span>2. 各国时空流场与下钻</span>
+        <span class="nav-badge">联动</span>
+      </div>
+
+      <div class="nav-group-label">区域与极地规律</div>
+      <div class="nav-item" onclick="switchView('page-china', this)">
+        <span>🇨🇳</span>
+        <span>3. 中国纵深与玫瑰图谱</span>
+        <span class="nav-badge">2图</span>
+      </div>
+      <div class="nav-item" onclick="switchView('page-polar', this)">
+        <span>❄️</span>
+        <span>4. 极地放大与涟漪散点</span>
+        <span class="nav-badge">框选</span>
+      </div>
+
+      <div class="nav-group-label">高维指纹与城市画像</div>
+      <div class="nav-item" onclick="switchView('page-heatmap', this)">
+        <span>🔥</span>
+        <span>5. 百年季节热力指纹矩阵</span>
+        <span class="nav-badge">热力</span>
+      </div>
+      <div class="nav-item" onclick="switchView('page-uncertainty', this)">
+        <span>📐</span>
+        <span>6. 误差收敛与频数分布</span>
+        <span class="nav-badge">统计</span>
+      </div>
+      <div class="nav-item" onclick="switchView('page-city', this)">
+        <span>🏙️</span>
+        <span>7. 国际都市全息气候画像</span>
+        <span class="nav-badge">雷达</span>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      赛道：数字艺术与可视化设计<br>
+      引擎：Python ETL + ECharts 5.5
+    </div>
+  </aside>
+
+  <!-- 右侧主视窗 -->
+  <div class="app-main">
+    <header>
+      <div class="header-left">
+        <div class="header-title">
+          <span class="live-dot"></span>
+          <span id="currentSectionTitle">模块一：全球海陆宏观态势、年代际阶梯与 1.5°C 阈值仪表盘</span>
+        </div>
+        <div class="header-subtitle">数据源：Berkeley Earth 1850-至今 全球陆地、海洋、国家、省份及重点城市长周期观测序列</div>
+      </div>
+      <div class="header-actions">
+        <div class="kpi-card">
+          <span>工业化前基准</span>
+          <b>1850 - 1900</b>
+        </div>
+        <div class="kpi-card">
+          <span>加速升温拐点</span>
+          <b>1975 年</b>
+        </div>
+        <div class="kpi-card danger">
+          <span>近现代陆地温升</span>
+          <b>+1.48 °C</b>
+        </div>
+        <button class="btn-fullscreen" onclick="toggleFullScreen()">
+          <span>⛶</span>
+          <span id="fsText">全屏沉浸演示</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="view-container">
+
+      <!-- 模块 1: 全球宏观走势 + 年代阶梯柱图 + 升温警戒仪表盘 (左1右2复合布局) -->
+      <div id="page-global" class="page-view active">
+        <div class="panel" style="flex: 1.65;">
+          <div class="panel-header">
+            <div class="panel-title">全球地表气温百年双轨走势及观测误差置信区间带</div>
+            <div class="panel-toolbar">
+              <button class="btn-tool" onclick="resetZoom('global')">重置缩放</button>
+            </div>
+          </div>
+          <div id="chart-global" class="chart-box"></div>
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 16px;">
+          <div class="panel" style="flex: 1;">
+            <div class="panel-header">
+              <div class="panel-title">年代际平均温度跃升阶梯图 (1850s - 2010s)</div>
+            </div>
+            <div id="chart-decade" class="chart-box"></div>
+          </div>
+          <div class="panel" style="flex: 1;">
+            <div class="panel-header">
+              <div class="panel-title">巴黎协定 +1.5°C 临界阈值监测仪表盘</div>
+            </div>
+            <div id="chart-gauge" class="chart-box"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 模块 2: 世界地图演变与国家下钻 -->
+      <div id="page-map" class="page-view">
+        <div class="panel" style="flex: 1.4;">
+          <div class="panel-header">
+            <div class="panel-title">全球升温距平地理流场（支持底部时间轴自动推演；点击任意国家下钻）</div>
+            <div class="panel-toolbar">
+              <button class="btn-tool" onclick="resetMapView()">重置地图视角 ↺</button>
+            </div>
+          </div>
+          <div id="chart-map" class="chart-box"></div>
+        </div>
+        <div class="panel" style="flex: 1;">
+          <div class="panel-header">
+            <div class="panel-title" id="drillTitle">国家历史轨迹下钻（当前：China）</div>
+            <div class="panel-toolbar">
+              <button class="btn-tool" onclick="resetDrill()">重置回中国</button>
+            </div>
+          </div>
+          <div id="chart-country-drill" class="chart-box"></div>
+        </div>
+      </div>
+
+      <!-- 模块 3: 中国省份排行 + 南丁格尔玫瑰图 -->
+      <div id="page-china" class="page-view">
+        <div class="panel" style="flex: 1.3;">
+          <div class="panel-header">
+            <div class="panel-title">中国各省份较工业化前升温幅度梯度排行</div>
+            <div class="panel-toolbar">
+              <button class="btn-tool" onclick="toggleChinaSort()">切换排序方向 ⇕</button>
+            </div>
+          </div>
+          <div id="chart-china" class="chart-box"></div>
+        </div>
+        <div class="panel" style="flex: 1;">
+          <div class="panel-header">
+            <div class="panel-title">中国典型省区升温极值南丁格尔玫瑰图 (Nightingale Rose)</div>
+          </div>
+          <div id="chart-china-rose" class="chart-box"></div>
+        </div>
+      </div>
+
+      <!-- 模块 4: 极地放大效应与涟漪散点 -->
+      <div id="page-polar" class="page-view">
+        <div class="panel" style="flex: 1;">
+          <div class="panel-header">
+            <div class="panel-title">全球极端升温主要大都市 Top 15 炫光榜</div>
+          </div>
+          <div id="chart-top-cities" class="chart-box"></div>
+        </div>
+        <div class="panel" style="flex: 1.2;">
+          <div class="panel-header">
+            <div class="panel-title">极地放大效应：纬度 vs 升温幅度动态涟漪散点图 (支持右上角框选)</div>
+          </div>
+          <div id="chart-polar-scatter" class="chart-box"></div>
+        </div>
+      </div>
+
+      <!-- 模块 5: 【全新】百年季节热力指纹矩阵 + 极坐标月度雷达 -->
+      <div id="page-heatmap" class="page-view">
+        <div class="panel" style="flex: 1.55;">
+          <div class="panel-header">
+            <div class="panel-title">全球陆地 1900-至今 月度气温二维时空热力指纹矩阵 (12个月 × 百余年)</div>
+          </div>
+          <div id="chart-matrix" class="chart-box"></div>
+        </div>
+        <div class="panel" style="flex: 1;">
+          <div class="panel-header">
+            <div class="panel-title">前工业时代 vs 近现代 12 个月均温扩张极坐标雷达图</div>
+          </div>
+          <div id="chart-season-polar" class="chart-box"></div>
+        </div>
+      </div>
+
+      <!-- 模块 6: 【全新】气候观测误差收敛 + 全球国家温升正态分布直方图 -->
+      <div id="page-uncertainty" class="page-view">
+        <div class="panel" style="flex: 1.2;">
+          <div class="panel-header">
+            <div class="panel-title">1850-至今 全球气象观测网不确定度(±°C)历史收敛曲线</div>
+          </div>
+          <div id="chart-uncertainty" class="chart-box"></div>
+        </div>
+        <div class="panel" style="flex: 1;">
+          <div class="panel-header">
+            <div class="panel-title">近现代全球各国升温距平频数分布直方图 (Histogram)</div>
+          </div>
+          <div id="chart-histogram" class="chart-box"></div>
+        </div>
+      </div>
+
+      <!-- 模块 7: 核心国际都市全息画像（左百年面积图 + 右多城四季雷达图） -->
+      <div id="page-city" class="page-view">
+        <div class="panel" style="flex: 1.35;">
+          <div class="panel-header">
+            <div class="panel-title">国际核心大都市 1900-至今 历史气温演进轨迹</div>
+            <div class="panel-toolbar">
+              <span style="font-size:12px; color:#94a3b8;">选择都市：</span>
+              <select id="citySelect" onchange="renderCityLookup(this.value)">
+                <option value="Shanghai" selected>上海 (Shanghai)</option>
+                <option value="Tokyo">东京 (Tokyo)</option>
+                <option value="New York">纽约 (New York)</option>
+                <option value="London">伦敦 (London)</option>
+                <option value="Moscow">莫斯科 (Moscow)</option>
+              </select>
+            </div>
+          </div>
+          <div id="chart-city-lookup" class="chart-box"></div>
+        </div>
+        <div class="panel" style="flex: 1;">
+          <div class="panel-header">
+            <div class="panel-title">五大国际都市四季温差与气候特征全息对比雷达图</div>
+          </div>
+          <div id="chart-city-radar" class="chart-box"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const charts = {};
+    const dataStore = {};
+    let chinaSortAsc = false;
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+      document.getElementById('fsText').innerText = document.fullscreenElement ? '退出全屏' : '全屏沉浸演示';
+      setTimeout(() => Object.values(charts).forEach(c => c && c.resize()), 100);
+    });
+
+    function switchView(pageId, navEl) {
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      navEl.classList.add('active');
+
+      document.querySelectorAll('.page-view').forEach(p => {
+        p.classList.remove('active');
+        p.style.display = 'none';
+      });
+
+      const activePage = document.getElementById(pageId);
+      activePage.classList.add('active');
+      activePage.style.display = 'flex';
+
+      const titles = {
+        'page-global': '模块一：全球海陆宏观态势、年代际阶梯与 1.5°C 阈值仪表盘',
+        'page-map': '模块二：世界各国时空流场演变与国家下钻分析',
+        'page-china': '模块三：中国大国纵深——各省份温升排行与南丁格尔玫瑰图谱',
+        'page-polar': '模块四：极地放大科学效应与动态涟漪散点探索',
+        'page-heatmap': '模块五：百年季节性热力指纹矩阵与极坐标月度扩张分析',
+        'page-uncertainty': '模块六：百年气象观测误差收敛史与全球升温频数分布',
+        'page-city': '模块七：核心国际大都市百年气温速查与全息四季雷达画像'
+      };
+      document.getElementById('currentSectionTitle').innerText = titles[pageId];
+
+      setTimeout(() => {
+        Object.values(charts).forEach(c => c && c.resize());
+      }, 60);
+    }
+
+    window.addEventListener('resize', () => {
+      Object.values(charts).forEach(c => c && c.resize());
+    });
+
+    async function initApp() {
+      try {
+        const [gRes, aRes, tRes, sRes, cRes, lRes] = await Promise.all([
+          fetch('global_trend.json'),
+          fetch('country_anomaly.json'),
+          fetch('country_trends.json'),
+          fetch('china_states.json').catch(() => null),
+          fetch('top_cities.json'),
+          fetch('city_lookup.json').catch(() => null)
+        ]);
+
+        const gJson = await gRes.json();
+        // 兼容处理：支持新版字典结构或旧版数组结构
+        if (Array.isArray(gJson)) {
+          dataStore.global = gJson;
+          dataStore.globalPack = { annual: gJson };
+        } else {
+          dataStore.global = gJson.annual;
+          dataStore.globalPack = gJson;
+        }
+
+        dataStore.anomaly = await aRes.json();
+        dataStore.trends = await tRes.json();
+        dataStore.chinaStates = sRes ? await sRes.json() : [];
+        dataStore.topCities = await cRes.json();
+        dataStore.cityLookup = lRes ? await lRes.json() : {};
+
+        renderModule1();
+        renderMapAndDrill();
+        renderChinaModule();
+        renderPolarCharts();
+        renderHeatmapModule();
+        renderUncertaintyModule();
+        renderCityLookup('Shanghai');
+        renderCityRadar();
+
+      } catch (err) {
+        console.error("加载数据异常:", err);
+      }
+    }
+
+    // ==================== 模块 1：全球双轨折线 + 年代阶梯柱 + 阈值仪表盘 ====================
+    function renderModule1() {
+      charts.global = echarts.init(document.getElementById('chart-global'), 'dark');
+      charts.decade = echarts.init(document.getElementById('chart-decade'), 'dark');
+      charts.gauge = echarts.init(document.getElementById('chart-gauge'), 'dark');
+
+      const d = dataStore.global;
+      const years = d.map(x => x.year);
+
+      charts.global.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+        legend: { data: ['陆地平均气温', '海陆综合气温', '观测误差范围'], textStyle: { color: '#cbd5e1' }, top: 0 },
+        grid: { left: '4%', right: '4%', bottom: '15%', top: '12%', containLabel: true },
+        xAxis: { type: 'category', data: years, boundaryGap: false, axisLabel: { color: '#94a3b8' } },
+        yAxis: { type: 'value', min: 'dataMin', name: '°C', axisLabel: { color: '#94a3b8' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        dataZoom: [
+          { type: 'inside', start: 0, end: 100 },
+          { type: 'slider', start: 0, end: 100, bottom: '2%', height: 18, borderColor: '#334155' }
+        ],
+        series: [
+          { name: '误差下限', type: 'line', data: d.map(x => (x.land_temp - x.land_uncertainty).toFixed(2)), lineStyle: { opacity: 0 }, stack: 'band', symbol: 'none' },
+          { name: '观测误差范围', type: 'line', data: d.map(x => (x.land_uncertainty * 2).toFixed(2)), lineStyle: { opacity: 0 }, areaStyle: { color: 'rgba(244,63,94,0.18)' }, stack: 'band', symbol: 'none' },
+          {
+            name: '陆地平均气温', type: 'line', data: d.map(x => x.land_temp), smooth: true,
+            lineStyle: { color: '#f43f5e', width: 2.8, shadowBlur: 10, shadowColor: 'rgba(244,63,94,0.5)' },
+            markLine: { symbol: 'none', data: [{ xAxis: '1975', label: { formatter: '1975 加速拐点', color: '#38bdf8' }, lineStyle: { color: '#38bdf8', type: 'dashed', width: 1.5 } }] }
+          },
+          {
+            name: '海陆综合气温', type: 'line', data: d.map(x => x.ocean_land_temp), smooth: true,
+            lineStyle: { color: '#38bdf8', width: 2.5 },
+            areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(56,189,248,0.22)' }, { offset: 1, color: 'rgba(56,189,248,0)' }]) }
+          }
+        ]
+      });
+
+      // 年代际阶梯图
+      const decades = dataStore.globalPack.decades || [];
+      charts.decade.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'axis' },
+        grid: { left: '6%', right: '5%', bottom: '12%', top: '12%', containLabel: true },
+        xAxis: { type: 'category', data: decades.map(x => x.decade_str), axisLabel: { color: '#94a3b8', fontSize: 11 } },
+        yAxis: { type: 'value', min: 7.5, name: '均温 °C', splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [{
+          type: 'bar',
+          data: decades.map(x => x.avg_temp),
+          barWidth: '55%',
+          itemStyle: {
+            borderRadius: [4, 4, 0, 0],
+            color: p => p.dataIndex >= decades.length - 4
+              ? new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#f43f5e' }, { offset: 1, color: '#f59e0b' }])
+              : new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#38bdf8' }, { offset: 1, color: '#1d4ed8' }])
+          }
+        }]
+      });
+
+      // 双环仪表盘
+      charts.gauge.setOption({
+        backgroundColor: 'transparent',
+        series: [
+          {
+            type: 'gauge',
+            center: ['30%', '55%'],
+            radius: '82%',
+            min: 0, max: 2.0,
+            splitNumber: 4,
+            progress: { show: true, width: 10, itemStyle: { color: '#f43f5e' } },
+            axisLine: { lineStyle: { width: 10, color: [[1, '#1e293b']] } },
+            axisTick: { show: false }, splitLine: { show: false }, axisLabel: { show: false },
+            pointer: { show: false },
+            title: { offsetCenter: [0, '30%'], color: '#94a3b8', fontSize: 11 },
+            detail: { valueAnimation: true, offsetCenter: [0, '-5%'], fontSize: 19, fontWeight: 'bold', color: '#f43f5e', formatter: '+{value}°C' },
+            data: [{ value: 1.48, name: '陆地距平升温' }]
+          },
+          {
+            type: 'gauge',
+            center: ['72%', '55%'],
+            radius: '82%',
+            min: 0, max: 2.0,
+            progress: { show: true, width: 10, itemStyle: { color: '#38bdf8' } },
+            axisLine: { lineStyle: { width: 10, color: [[1, '#1e293b']] } },
+            axisTick: { show: false }, splitLine: { show: false }, axisLabel: { show: false },
+            pointer: { show: false },
+            title: { offsetCenter: [0, '30%'], color: '#94a3b8', fontSize: 11 },
+            detail: { valueAnimation: true, offsetCenter: [0, '-5%'], fontSize: 19, fontWeight: 'bold', color: '#38bdf8', formatter: '+{value}°C' },
+            data: [{ value: 0.89, name: '海陆综合升温' }]
+          }
+        ]
+      });
+    }
+
+    function resetZoom(chartKey) {
+      if (charts[chartKey]) charts[chartKey].dispatchAction({ type: 'dataZoom', start: 0, end: 100 });
+    }
+
+    // ==================== 模块 2：世界地图与国家下钻 ====================
+    function renderMapAndDrill() {
+      charts.map = echarts.init(document.getElementById('chart-map'), 'dark');
+      charts.countryDrill = echarts.init(document.getElementById('chart-country-drill'), 'dark');
+      const years = Object.keys(dataStore.anomaly).map(Number).sort((a,b)=>a-b);
+
+      charts.map.setOption({
+        baseOption: {
+          timeline: {
+            axisType: 'category', autoPlay: false, playInterval: 1200,
+            data: years.map(String), bottom: '2%', left: '4%', right: '4%',
+            label: { color: '#94a3b8' }, checkpointStyle: { color: '#38bdf8' },
+            controlStyle: { color: '#38bdf8', borderColor: '#38bdf8' }
+          },
+          backgroundColor: 'transparent',
+          tooltip: {
+            trigger: 'item',
+            formatter: p => `<b>${p.name}</b><br/>较工业革命前升温: ${p.value !== undefined ? (p.value > 0 ? '+' : '') + p.value + ' °C' : '暂无数据'}<br/><span style="color:#38bdf8;font-size:11px;">点击下钻该国百年轨迹</span>`
+          },
+          visualMap: {
+            min: -1.0, max: 2.5,
+            inRange: { color: ['#1e3a8a', '#3b82f6', '#fde68a', '#f97316', '#e11d48'] },
+            bottom: '12%', left: '2%', text: ['高暖化', '偏冷'], textStyle: { color: '#94a3b8' }
+          },
+          series: [{
+            type: 'map', map: 'world', roam: true, zoom: 1.15,
+            itemStyle: { areaColor: '#131f35', borderColor: '#283c5f', borderWidth: 0.8 },
+            emphasis: { itemStyle: { areaColor: '#facc15' }, label: { show: false } }
+          }]
+        },
+        options: years.map(yr => ({ series: [{ data: dataStore.anomaly[yr] || [] }] }))
+      });
+
+      charts.map.on('click', p => { if (p.name) showCountryDetail(p.name); });
+      showCountryDetail('China');
+    }
+
+    function resetMapView() {
+      if (charts.map) charts.map.setOption({ baseOption: { series: [{ zoom: 1.15, center: null }] } });
+    }
+
+    function showCountryDetail(cname) {
+      const info = dataStore.trends[cname];
+      if (!info) return;
+      document.getElementById('drillTitle').innerText = `${cname} 百年气温与距平轨迹`;
+      charts.countryDrill.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'axis' },
+        legend: { data: ['实测温度', '升温距平'], textStyle: { color: '#94a3b8' }, top: 0 },
+        grid: { left: '5%', right: '5%', bottom: '15%', top: '12%', containLabel: true },
+        xAxis: { type: 'category', data: info.years, boundaryGap: false, axisLabel: { color: '#94a3b8' } },
+        yAxis: [
+          { type: 'value', name: '实测°C', splitLine: { lineStyle: { color: '#1e293b' } } },
+          { type: 'value', name: '距平Δ°C', splitLine: { show: false } }
+        ],
+        dataZoom: [{ type: 'inside' }, { type: 'slider', bottom: '2%', height: 16 }],
+        series: [
+          { name: '实测温度', type: 'line', data: info.temps, smooth: true, lineStyle: { color: '#38bdf8', width: 2 } },
+          { name: '升温距平', type: 'bar', yAxisIndex: 1, data: info.anomalies, itemStyle: { color: p => p.value >= 0 ? '#f43f5e' : '#38bdf8' } }
+        ]
+      }, true);
+    }
+
+    function resetDrill() { showCountryDetail('China'); }
+
+    // ==================== 模块 3：中国省份条形图 + 南丁格尔玫瑰图 ====================
+    function renderChinaModule() {
+      charts.china = echarts.init(document.getElementById('chart-china'), 'dark');
+      charts.chinaRose = echarts.init(document.getElementById('chart-china-rose'), 'dark');
+      updateChinaChart();
+
+      const top10 = (dataStore.chinaStates || []).slice(0, 10);
+      charts.chinaRose.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'item', formatter: '{b}: +{c} °C' },
+        legend: { bottom: '2%', textStyle: { color: '#94a3b8', fontSize: 11 } },
+        series: [{
+          name: '省份温升极值',
+          type: 'pie',
+          radius: ['18%', '70%'],
+          center: ['50%', '45%'],
+          roseType: 'area',
+          itemStyle: { borderRadius: 6, borderColor: '#0b1426', borderWidth: 2 },
+          label: { color: '#e2e8f0', formatter: '{b}\n+{c}°C' },
+          data: top10.map(x => ({ name: x.State, value: x.rise }))
+        }]
+      });
+    }
+
+    function toggleChinaSort() {
+      chinaSortAsc = !chinaSortAsc;
+      updateChinaChart();
+    }
+
+    function updateChinaChart() {
+      if (!dataStore.chinaStates) return;
+      let list = [...dataStore.chinaStates];
+      list.sort((a, b) => chinaSortAsc ? a.rise - b.rise : b.rise - a.rise);
+      const topList = list.slice(0, 15).reverse();
+
+      charts.china.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+        grid: { left: '10%', right: '10%', bottom: '6%', top: '4%', containLabel: true },
+        xAxis: { type: 'value', name: 'Δ°C', splitLine: { lineStyle: { color: '#1e293b' } } },
+        yAxis: { type: 'category', data: topList.map(x => x.State), axisLabel: { color: '#cbd5e1' } },
+        series: [{
+          type: 'bar',
+          data: topList.map(x => x.rise),
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [{ offset: 0, color: '#f43f5e' }, { offset: 1, color: '#f59e0b' }]),
+            borderRadius: [0, 5, 5, 0]
+          },
+          label: { show: true, position: 'right', formatter: '+{c}°C', color: '#f8fafc' }
+        }]
+      }, true);
+    }
+
+    // ==================== 模块 4：极地放大效应 + 动态呼吸涟漪散点图 ====================
+    function renderPolarCharts() {
+      charts.topCities = echarts.init(document.getElementById('chart-top-cities'), 'dark');
+      charts.polarScatter = echarts.init(document.getElementById('chart-polar-scatter'), 'dark');
+
+      const top15 = dataStore.topCities.slice(0, 15).reverse();
+      charts.topCities.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+        grid: { left: '16%', right: '12%', bottom: '6%', top: '4%', containLabel: true },
+        xAxis: { type: 'value', splitLine: { lineStyle: { color: '#1e293b' } } },
+        yAxis: { type: 'category', data: top15.map(x => x.City), axisLabel: { color: '#cbd5e1' } },
+        series: [{
+          type: 'bar', data: top15.map(x => x.temp_rise),
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [{ offset: 0, color: '#a855f7' }, { offset: 1, color: '#38bdf8' }]),
+            borderRadius: [0, 5, 5, 0]
+          },
+          label: { show: true, position: 'right', formatter: '+{c}°C', color: '#fff' }
+        }]
+      });
+
+      const allPts = dataStore.topCities.map(x => [x.lat_num, x.temp_rise, x.City]);
+      const top5Pts = dataStore.topCities.slice(0, 6).map(x => [x.lat_num, x.temp_rise, x.City]);
+
+      charts.polarScatter.setOption({
+        backgroundColor: 'transparent',
+        toolbox: { feature: { brush: { type: ['rect', 'polygon', 'clear'] } }, iconStyle: { borderColor: '#38bdf8' }, top: 0, right: '4%' },
+        brush: { toolbox: ['rect', 'polygon', 'clear'], xAxisIndex: 0 },
+        tooltip: { formatter: p => `<b>${p.value[2]}</b><br/>纬度: ${p.value[0]}°<br/>升温幅度: +${p.value[1]}°C` },
+        grid: { left: '8%', right: '8%', bottom: '8%', top: '12%', containLabel: true },
+        xAxis: { type: 'value', name: '纬度 (°)', axisLabel: { formatter: '{value}°' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        yAxis: { type: 'value', name: '升温 (°C)', splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [
+          {
+            name: '全球大都市', type: 'scatter',
+            symbolSize: val => Math.max(val[1] * 7, 8),
+            data: allPts,
+            itemStyle: { color: 'rgba(56, 189, 248, 0.75)', shadowBlur: 8, shadowColor: '#38bdf8' }
+          },
+          {
+            name: '极值预警都市', type: 'effectScatter',
+            symbolSize: 16,
+            showEffectOn: 'render',
+            rippleEffect: { brushType: 'stroke', scale: 3.5 },
+            data: top5Pts,
+            itemStyle: { color: '#f43f5e', shadowBlur: 12, shadowColor: '#f43f5e' }
+          }
+        ]
+      });
+    }
+
+    // ==================== 模块 5：百年月度热力指纹矩阵 + 极坐标雷达 ====================
+    function renderHeatmapModule() {
+      charts.matrix = echarts.init(document.getElementById('chart-matrix'), 'dark');
+      charts.seasonPolar = echarts.init(document.getElementById('chart-season-polar'), 'dark');
+
+      const pack = dataStore.globalPack;
+      const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+
+      charts.matrix.setOption({
+        backgroundColor: 'transparent',
+        tooltip: {
+          position: 'top',
+          formatter: p => `${pack.heatmap_years[p.value[0]]}年 ${months[p.value[1]]}<br/>全球陆地均温: <b>${p.value[2]} °C</b>`
+        },
+        grid: { left: '5%', right: '4%', bottom: '15%', top: '6%', containLabel: true },
+        xAxis: { type: 'category', data: pack.heatmap_years || [], splitArea: { show: true } },
+        yAxis: { type: 'category', data: months, splitArea: { show: true } },
+        visualMap: {
+          min: 2, max: 16, calculable: true, orient: 'horizontal', left: 'center', bottom: '1%',
+          inRange: { color: ['#1e3a8a', '#0284c7', '#38bdf8', '#fde047', '#f97316', '#dc2626'] },
+          textStyle: { color: '#94a3b8' }
+        },
+        series: [{
+          name: '月度均温', type: 'heatmap',
+          data: pack.heatmap_data || [],
+          emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(255,255,255,0.8)' } }
+        }]
+      });
+
+      charts.seasonPolar.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'axis' },
+        legend: { data: ['1850-1900 基准期', '1990-至今 近现代'], bottom: 0, textStyle: { color: '#cbd5e1' } },
+        polar: { radius: '68%' },
+        angleAxis: { type: 'category', data: months, startAngle: 90, axisLabel: { color: '#cbd5e1' } },
+        radiusAxis: { min: 0, max: 16, axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [
+          {
+            name: '1850-1900 基准期', type: 'line', coordinateSystem: 'polar',
+            data: pack.early_monthly || [], smooth: true,
+            lineStyle: { color: '#38bdf8', width: 2 },
+            areaStyle: { color: 'rgba(56, 189, 248, 0.2)' }
+          },
+          {
+            name: '1990-至今 近现代', type: 'line', coordinateSystem: 'polar',
+            data: pack.recent_monthly || [], smooth: true,
+            lineStyle: { color: '#f43f5e', width: 2.5 },
+            areaStyle: { color: 'rgba(244, 63, 94, 0.25)' }
+          }
+        ]
+      });
+    }
+
+    // ==================== 模块 6：观测不确定度收敛 + 各国升温分布直方图 ====================
+    function renderUncertaintyModule() {
+      charts.uncertainty = echarts.init(document.getElementById('chart-uncertainty'), 'dark');
+      charts.histogram = echarts.init(document.getElementById('chart-histogram'), 'dark');
+
+      const d = dataStore.global;
+      charts.uncertainty.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'axis' },
+        grid: { left: '5%', right: '5%', bottom: '10%', top: '10%', containLabel: true },
+        xAxis: { type: 'category', data: d.map(x => x.year), boundaryGap: false },
+        yAxis: { type: 'value', name: '观测误差 ±°C', splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [{
+          name: '测量不确定度', type: 'line',
+          data: d.map(x => x.land_uncertainty),
+          smooth: true,
+          lineStyle: { color: '#a855f7', width: 2.5 },
+          areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(168,85,247,0.45)' }, { offset: 1, color: 'rgba(168,85,247,0.0)' }]) },
+          markPoint: { data: [{ type: 'max', name: '早期最高误差' }, { type: 'min', name: '现代精密误差' }] }
+        }]
+      });
+
+      // 统计最新年份各国距平频数分布
+      const years = Object.keys(dataStore.anomaly).map(Number).sort((a,b)=>a-b);
+      const latestList = dataStore.anomaly[years[years.length - 1]] || [];
+      const bins = ['<0°C', '0~0.5°C', '0.5~1.0°C', '1.0~1.5°C', '1.5~2.0°C', '>2.0°C'];
+      const counts = [0, 0, 0, 0, 0, 0];
+      latestList.forEach(item => {
+        const v = item.value;
+        if (v < 0) counts[0]++;
+        else if (v < 0.5) counts[1]++;
+        else if (v < 1.0) counts[2]++;
+        else if (v < 1.5) counts[3]++;
+        else if (v < 2.0) counts[4]++;
+        else counts[5]++;
+      });
+
+      charts.histogram.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'axis' },
+        grid: { left: '6%', right: '6%', bottom: '10%', top: '10%', containLabel: true },
+        xAxis: { type: 'category', data: bins, axisLabel: { color: '#cbd5e1' } },
+        yAxis: { type: 'value', name: '国家/地区数量', splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [{
+          name: '国家数量', type: 'bar', data: counts, barWidth: '52%',
+          itemStyle: {
+            borderRadius: [6, 6, 0, 0],
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#10b981' }, { offset: 1, color: '#0284c7' }])
+          },
+          label: { show: true, position: 'top', color: '#fff' }
+        }]
+      });
+    }
+
+    // ==================== 模块 7：核心国际都市轨迹 + 五大都市四季全息雷达 ====================
+    function renderCityLookup(city) {
+      if (!charts.cityLookup) {
+        charts.cityLookup = echarts.init(document.getElementById('chart-city-lookup'), 'dark');
+      }
+      const data = (dataStore.cityLookup && dataStore.cityLookup[city]) ? dataStore.cityLookup[city] : null;
+      if (!data) return;
+
+      charts.cityLookup.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+        grid: { left: '5%', right: '4%', bottom: '15%', top: '10%', containLabel: true },
+        xAxis: { type: 'category', data: data.years, boundaryGap: false, axisLabel: { color: '#94a3b8' } },
+        yAxis: { type: 'value', name: '°C', axisLabel: { color: '#94a3b8' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        dataZoom: [
+          { type: 'inside', start: 0, end: 100 },
+          { type: 'slider', start: 0, end: 100, bottom: '2%', height: 18 }
+        ],
+        series: [{
+          name: city, type: 'line', data: data.temps, smooth: true,
+          lineStyle: { color: '#38bdf8', width: 2.5, shadowBlur: 8, shadowColor: '#38bdf8' },
+          areaStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: 'rgba(56, 189, 248, 0.4)' },
+              { offset: 1, color: 'rgba(56, 189, 248, 0.0)' }
+            ])
+          }
+        }]
+      }, true);
+    }
+
+    function renderCityRadar() {
+      charts.cityRadar = echarts.init(document.getElementById('chart-city-radar'), 'dark');
+      const lookup = dataStore.cityLookup || {};
+      const cities = ['Shanghai', 'Tokyo', 'New York', 'London', 'Moscow'];
+      const colors = ['#38bdf8', '#f43f5e', '#f59e0b', '#10b981', '#a855f7'];
+
+      const seriesData = cities.filter(c => lookup[c] && lookup[c].radar).map((c, idx) => ({
+        value: lookup[c].radar,
+        name: c,
+        lineStyle: { color: colors[idx], width: 2 },
+        itemStyle: { color: colors[idx] }
+      }));
+
+      charts.cityRadar.setOption({
+        backgroundColor: 'transparent',
+        tooltip: {},
+        legend: { data: cities, bottom: 0, textStyle: { color: '#cbd5e1', fontSize: 11 } },
+        radar: {
+          radius: '62%',
+          indicator: [
+            { name: '春季均温', max: 30, min: -10 },
+            { name: '夏季均温', max: 35, min: 0 },
+            { name: '秋季均温', max: 30, min: -10 },
+            { name: '冬季均温', max: 20, min: -15 },
+            { name: '冬夏温差极值', max: 35, min: 0 }
+          ],
+          axisName: { color: '#94a3b8' },
+          splitArea: { areaStyle: { color: ['rgba(30,41,59,0.4)', 'rgba(15,23,42,0.4)'] } },
+          splitLine: { lineStyle: { color: 'rgba(56,189,248,0.2)' } }
+        },
+        series: [{ type: 'radar', data: seriesData }]
+      });
+    }
+
+    initApp();
+  </script>
+</body>
+</html>
