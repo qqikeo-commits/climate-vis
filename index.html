@@ -611,31 +611,46 @@
         // 自动适配 GitHub Pages 线上子路径 (/climate-vis/) 或本地路径 (./)
         const repoPrefix = window.location.hostname.includes('github.io') ? '/climate-vis/' : './';
 
-        const [gRes, aRes, tRes, sRes, cRes, lRes] = await Promise.all([
-          fetch(repoPrefix + 'global_trend.json' + ts),
-          fetch(repoPrefix + 'country_anomaly.json' + ts),
-          fetch(repoPrefix + 'country_trends.json' + ts),
-          fetch(repoPrefix + 'china_states.json' + ts).catch(() => null),
-          fetch(repoPrefix + 'top_cities.json' + ts),
-          fetch(repoPrefix + 'city_lookup.json' + ts).catch(() => null)
+        const fileNames = [
+          'global_trend.json', 
+          'country_anomaly.json', 
+          'country_trends.json', 
+          'china_states.json', 
+          'top_cities.json', 
+          'city_lookup.json'
+        ];
+
+        const responses = await Promise.all([
+          fetch(repoPrefix + fileNames[0] + ts),
+          fetch(repoPrefix + fileNames[1] + ts),
+          fetch(repoPrefix + fileNames[2] + ts),
+          fetch(repoPrefix + fileNames[3] + ts).catch(() => null),
+          fetch(repoPrefix + fileNames[4] + ts),
+          fetch(repoPrefix + fileNames[5] + ts).catch(() => null)
         ]);
 
-        const gJson = await gRes.json();
-        // 兼容处理：支持新版字典结构或旧版数组结构
-        if (Array.isArray(gJson)) {
-          dataStore.global = gJson;
-          dataStore.globalPack = { annual: gJson };
-        } else {
-          dataStore.global = gJson.annual;
-          dataStore.globalPack = gJson;
+        // 检查并打印每一个文件的加载状态，方便排查
+        for (let i = 0; i < responses.length; i++) {
+          if (responses[i]) {
+            if (!responses[i].ok) {
+              console.error(`[加载失败] ${fileNames[i]} 状态码: ${responses[i].status} 链接: ${responses[i].url}`);
+            } else {
+              console.log(`[加载成功] ${fileNames[i]}`);
+            }
+          }
         }
 
+        const [gRes, aRes, tRes, sRes, cRes, lRes] = responses;
+
+        // 依次解析 JSON
+        dataStore.global = (await gRes.json()).annual || (await gRes.json());
         dataStore.anomaly = await aRes.json();
         dataStore.trends = await tRes.json();
         dataStore.chinaStates = sRes ? await sRes.json() : [];
         dataStore.topCities = await cRes.json();
         dataStore.cityLookup = lRes ? await lRes.json() : {};
 
+        // 初始化图表...
         renderModule1();
         renderMapAndDrill();
         renderChinaModule();
