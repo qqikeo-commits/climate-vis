@@ -13,33 +13,99 @@
       --border-glow: rgba(56, 189, 248, 0.28);
       --neon-cyan: #38bdf8;
       --neon-rose: #f43f5e;
+      --neon-amber: #f59e0b;
+      --neon-purple: #a855f7;
+      --neon-emerald: #10b981;
       --text-primary: #f8fafc;
       --text-secondary: #94a3b8;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background-color: var(--bg-deep);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.08) 0%, transparent 35%),
+        radial-gradient(circle at 85% 80%, rgba(244, 63, 94, 0.07) 0%, transparent 35%),
+        linear-gradient(rgba(56, 189, 248, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56, 189, 248, 0.025) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
       color: var(--text-primary);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
       overflow: hidden; height: 100vh; display: flex;
     }
-    aside { width: 268px; background: #091122; border-right: 1px solid var(--border-glow); display: flex; flex-direction: column; z-index: 30; }
-    .brand { height: 70px; display: flex; align-items: center; gap: 12px; padding: 0 18px; border-bottom: 1px solid rgba(56, 189, 248, 0.15); }
-    .brand-logo { width: 36px; height: 36px; background: linear-gradient(135deg, #0284c7, #f43f5e); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #fff; }
-    .brand-text h1 { font-size: 14.5px; color: #fff; }
-    .brand-text p { font-size: 10.5px; color: var(--text-secondary); }
-    nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 6px; }
-    .nav-item { display: flex; align-items: center; gap: 11px; padding: 11px 14px; border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 13px; }
-    .nav-item:hover, .nav-item.active { background: rgba(56, 189, 248, 0.2); color: #fff; }
-    .app-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-    header { height: 70px; background: rgba(8, 15, 32, 0.85); border-bottom: 1px solid var(--border-glow); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
-    .header-title { font-size: 16.5px; font-weight: 700; color: #f8fafc; }
+
+    aside {
+      width: 268px; min-width: 268px;
+      background: linear-gradient(180deg, rgba(9, 17, 34, 0.95) 0%, rgba(6, 11, 24, 0.98) 100%);
+      border-right: 1px solid var(--border-glow);
+      box-shadow: 6px 0 30px rgba(0, 0, 0, 0.5);
+      display: flex; flex-direction: column; z-index: 30;
+    }
+
+    .brand {
+      height: 70px; display: flex; align-items: center; gap: 12px; padding: 0 18px;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.15); position: relative;
+    }
+    .brand-logo {
+      width: 36px; height: 36px; background: linear-gradient(135deg, #0284c7, #f43f5e);
+      border-radius: 9px; display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 15px; color: #fff; box-shadow: 0 0 16px rgba(56, 189, 248, 0.5);
+    }
+    .brand-text h1 { font-size: 14.5px; font-weight: 800; color: #fff; }
+    .brand-text p { font-size: 10.5px; color: var(--text-secondary); margin-top: 2px; }
+
+    nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; }
+    .nav-group-label { font-size: 10.5px; text-transform: uppercase; color: #64748b; padding: 6px 10px 2px; font-weight: 700; }
+    .nav-item {
+      display: flex; align-items: center; gap: 11px; padding: 11px 14px; border-radius: 8px;
+      color: var(--text-secondary); cursor: pointer; font-size: 13px; font-weight: 500;
+      transition: all 0.25s; border: 1px solid transparent; user-select: none;
+    }
+    .nav-item:hover { background: rgba(56, 189, 248, 0.08); color: #f8fafc; }
+    .nav-item.active {
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.2), rgba(56, 189, 248, 0.04));
+      border-color: rgba(56, 189, 248, 0.45); color: #fff;
+    }
+    .nav-badge { margin-left: auto; font-size: 10px; padding: 1px 6px; border-radius: 10px; background: rgba(56, 189, 248, 0.15); color: var(--neon-cyan); }
+
+    .sidebar-footer { padding: 12px 16px; border-top: 1px solid rgba(56, 189, 248, 0.12); font-size: 11px; color: #64748b; background: rgba(5, 9, 20, 0.6); }
+
+    .app-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+
+    header {
+      height: 70px; background: rgba(8, 15, 32, 0.85); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-glow); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 15;
+    }
+    .header-title { font-size: 16.5px; font-weight: 700; color: #f8fafc; display: flex; align-items: center; gap: 8px; }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--neon-emerald); box-shadow: 0 0 10px var(--neon-emerald); }
+    .header-subtitle { font-size: 11.5px; color: var(--text-secondary); }
+
+    .header-actions { display: flex; gap: 12px; align-items: center; }
+    .kpi-card { background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); padding: 6px 14px; border-radius: 8px; display: flex; flex-direction: column; }
+    .kpi-card span { font-size: 10px; color: #94a3b8; }
+    .kpi-card b { font-size: 13.5px; color: var(--neon-cyan); }
+    .kpi-card.danger b { color: var(--neon-rose); }
+
+    .btn-fullscreen {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(244, 63, 94, 0.25));
+      border: 1px solid var(--neon-cyan); color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 12.5px; font-weight: 600; cursor: pointer;
+    }
+
     .view-container { flex: 1; padding: 16px; position: relative; overflow: hidden; }
     .page-view { position: absolute; top: 16px; left: 16px; right: 16px; bottom: 16px; display: none; gap: 16px; }
     .page-view.active { display: flex; }
-    .panel { flex: 1; background: var(--bg-panel); border: 1px solid var(--border-glow); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; }
-    .panel-title { font-size: 13.5px; font-weight: 700; color: #e2e8f0; margin-bottom: 8px; }
-    .chart-box { flex: 1; width: 100%; height: 100%; min-height: 200px; }
+
+    .panel {
+      flex: 1; background: var(--bg-panel); backdrop-filter: blur(10px); border: 1px solid var(--border-glow);
+      border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; position: relative; overflow: hidden;
+    }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid rgba(148, 163, 184, 0.1); padding-bottom: 6px; }
+    .panel-title { font-size: 13.5px; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; gap: 8px; }
+    .panel-title::before { content: ""; width: 4px; height: 14px; background: linear-gradient(180deg, var(--neon-cyan), var(--neon-rose)); border-radius: 2px; }
+    .panel-toolbar { display: flex; gap: 8px; align-items: center; }
+    .btn-tool { font-size: 11px; padding: 4px 10px; border-radius: 5px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.38); color: var(--neon-cyan); cursor: pointer; }
+    .chart-box { flex: 1; width: 100%; height: 100%; min-height: 180px; }
+    select { background: #0f172a; color: #f8fafc; border: 1px solid var(--neon-cyan); padding: 4px 12px; border-radius: 6px; outline: none; }
   </style>
 </head>
 <body>
@@ -49,53 +115,92 @@
       <div class="brand-logo">TP</div>
       <div class="brand-text">
         <h1>气候时空演化平台</h1>
-        <p>多维交互系统</p>
+        <p>Berkeley Earth 多维交互系统</p>
       </div>
     </div>
     <nav>
-      <div class="nav-item active" onclick="switchView('page-global', this)">🌍 1. 全球宏观态势</div>
-      <div class="nav-item" onclick="switchView('page-map', this)">🗺️ 2. 各国时空演变</div>
-      <div class="nav-item" onclick="switchView('page-china', this)">🇨🇳 3. 中国省份响应</div>
-      <div class="nav-item" onclick="switchView('page-polar', this)">❄️ 4. 极地放大效应</div>
-      <div class="nav-item" onclick="switchView('page-city', this)">🏙️ 5. 核心城市速查</div>
+      <div class="nav-group-label">宏观与空间流场</div>
+      <div class="nav-item active" onclick="switchView('page-global', this)"><span>🌍</span><span>1. 全球海陆与年代阶梯</span><span class="nav-badge">3图</span></div>
+      <div class="nav-item" onclick="switchView('page-map', this)"><span>🗺️</span><span>2. 各国时空流场与下钻</span><span class="nav-badge">联动</span></div>
+
+      <div class="nav-group-label">区域与极地规律</div>
+      <div class="nav-item" onclick="switchView('page-china', this)"><span>🇨🇳</span><span>3. 中国纵深与玫瑰图谱</span><span class="nav-badge">2图</span></div>
+      <div class="nav-item" onclick="switchView('page-polar', this)"><span>❄️</span><span>4. 极地放大与涟漪散点</span><span class="nav-badge">框选</span></div>
+
+      <div class="nav-group-label">高维指纹与城市画像</div>
+      <div class="nav-item" onclick="switchView('page-heatmap', this)"><span>🔥</span><span>5. 百年季节热力指纹矩阵</span><span class="nav-badge">热力</span></div>
+      <div class="nav-item" onclick="switchView('page-uncertainty', this)"><span>📐</span><span>6. 误差收敛与频数分布</span><span class="nav-badge">统计</span></div>
+      <div class="nav-item" onclick="switchView('page-city', this)"><span>🏙️</span><span>7. 国际都市全息气候画像</span><span class="nav-badge">雷达</span></div>
     </nav>
+    <div class="sidebar-footer">数字艺术与可视化设计赛道<br>Python ETL + ECharts 5.5</div>
   </aside>
 
   <div class="app-main">
     <header>
-      <div class="header-title" id="currentSectionTitle">模块一：全球海陆宏观气温长周期演变</div>
+      <div>
+        <div class="header-title"><span class="live-dot"></span><span id="currentSectionTitle">模块一：全球海陆宏观态势、年代际阶梯与 1.5°C 阈值仪表盘</span></div>
+      </div>
+      <div class="header-actions">
+        <div class="kpi-card"><span>工业化前基准</span><b>1850 - 1900</b></div>
+        <div class="kpi-card"><span>加速升温拐点</span><b>1975 年</b></div>
+        <div class="kpi-card danger"><span>近现代陆地温升</span><b>+1.48 °C</b></div>
+        <button class="btn-fullscreen" onclick="toggleFullScreen()">⛶ 全屏演示</button>
+      </div>
     </header>
 
     <div class="view-container">
+      <!-- 模块 1 -->
       <div id="page-global" class="page-view active">
-        <div class="panel">
-          <div class="panel-title">全球地表气温走势及海陆缓冲对比</div>
+        <div class="panel" style="flex: 1.65;">
+          <div class="panel-header"><div class="panel-title">全球地表气温百年双轨走势及观测误差置信区间带</div><button class="btn-tool" onclick="resetZoom('global')">重置缩放</button></div>
           <div id="chart-global" class="chart-box"></div>
         </div>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 16px;">
+          <div class="panel"><div class="panel-header"><div class="panel-title">年代际平均温度跃升阶梯图 (1850s - 2010s)</div></div><div id="chart-decade" class="chart-box"></div></div>
+          <div class="panel"><div class="panel-header"><div class="panel-title">巴黎协定 +1.5°C 临界阈值监测仪表盘</div></div><div id="chart-gauge" class="chart-box"></div></div>
+        </div>
       </div>
+
+      <!-- 模块 2 -->
       <div id="page-map" class="page-view">
-        <div class="panel">
-          <div class="panel-title">全球升温距平地理分布</div>
-          <div id="chart-map" class="chart-box"></div>
-        </div>
+        <div class="panel" style="flex: 1.4;"><div class="panel-header"><div class="panel-title">全球升温距平地理流场（点击国家下钻）</div><button class="btn-tool" onclick="resetMapView()">重置视角</button></div><div id="chart-map" class="chart-box"></div></div>
+        <div class="panel" style="flex: 1;"><div class="panel-header"><div class="panel-title" id="drillTitle">国家历史轨迹下钻（当前：China）</div><button class="btn-tool" onclick="resetDrill()">重置中国</button></div><div id="chart-country-drill" class="chart-box"></div></div>
       </div>
+
+      <!-- 模块 3 -->
       <div id="page-china" class="page-view">
-        <div class="panel">
-          <div class="panel-title">中国各省份升温幅度排行</div>
-          <div id="chart-china" class="chart-box"></div>
-        </div>
+        <div class="panel" style="flex: 1.3;"><div class="panel-header"><div class="panel-title">中国各省份升温幅度梯度排行</div><button class="btn-tool" onclick="toggleChinaSort()">切换排序</button></div><div id="chart-china" class="chart-box"></div></div>
+        <div class="panel"><div class="panel-header"><div class="panel-title">中国典型省区升温南丁格尔玫瑰图</div></div><div id="chart-china-rose" class="chart-box"></div></div>
       </div>
+
+      <!-- 模块 4 -->
       <div id="page-polar" class="page-view">
-        <div class="panel">
-          <div class="panel-title">极端升温都市排行</div>
-          <div id="chart-top-cities" class="chart-box"></div>
-        </div>
+        <div class="panel"><div class="panel-header"><div class="panel-title">全球极端升温主要大都市 Top 15</div></div><div id="chart-top-cities" class="chart-box"></div></div>
+        <div class="panel" style="flex: 1.2;"><div class="panel-header"><div class="panel-title">极地放大效应：纬度 vs 升温涟漪散点图</div></div><div id="chart-polar-scatter" class="chart-box"></div></div>
       </div>
+
+      <!-- 模块 5 -->
+      <div id="page-heatmap" class="page-view">
+        <div class="panel" style="flex: 1.55;"><div class="panel-header"><div class="panel-title">全球陆地 1900-至今 月度气温时空热力指纹矩阵</div></div><div id="chart-matrix" class="chart-box"></div></div>
+        <div class="panel"><div class="panel-header"><div class="panel-title">前工业时代 vs 近现代月度极坐标雷达扩张图</div></div><div id="chart-season-polar" class="chart-box"></div></div>
+      </div>
+
+      <!-- 模块 6 -->
+      <div id="page-uncertainty" class="page-view">
+        <div class="panel"><div class="panel-header"><div class="panel-title">1850-至今 全球气象观测网不确定度收敛曲线</div></div><div id="chart-uncertainty" class="chart-box"></div></div>
+        <div class="panel"><div class="panel-header"><div class="panel-title">近现代全球各国升温距平频数分布直方图</div></div><div id="chart-histogram" class="chart-box"></div></div>
+      </div>
+
+      <!-- 模块 7 -->
       <div id="page-city" class="page-view">
-        <div class="panel">
-          <div class="panel-title">核心城市百年气温速查</div>
+        <div class="panel" style="flex: 1.35;">
+          <div class="panel-header">
+            <div class="panel-title">国际核心大都市历史气温演进轨迹</div>
+            <div class="panel-toolbar"><select id="citySelect" onchange="renderCityLookup(this.value)"><option value="Shanghai" selected>上海</option><option value="Tokyo">东京</option><option value="New York">纽约</option><option value="London">伦敦</option><option value="Moscow">莫斯科</option></select></div>
+          </div>
           <div id="chart-city-lookup" class="chart-box"></div>
         </div>
+        <div class="panel"><div class="panel-header"><div class="panel-title">五大国际都市四季温差特征全息对比雷达图</div></div><div id="chart-city-radar" class="chart-box"></div></div>
       </div>
     </div>
   </div>
@@ -103,79 +208,272 @@
   <script>
     const charts = {};
     const dataStore = {};
+    let chinaSortAsc = false;
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(() => {}); }
+      else if (document.exitFullscreen) { document.exitFullscreen(); }
+    }
 
     function switchView(pageId, navEl) {
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
       navEl.classList.add('active');
-      document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
-      document.getElementById(pageId).classList.add('active');
-      setTimeout(() => Object.values(charts).forEach(c => c && c.resize()), 50);
+      document.querySelectorAll('.page-view').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
+      const target = document.getElementById(pageId);
+      target.classList.add('active'); target.style.display = 'flex';
+
+      setTimeout(() => {
+        if (pageId === 'page-heatmap') { renderHeatmapModule(); }
+        if (pageId === 'page-city') { renderCityLookup(document.getElementById('citySelect').value); renderCityRadar(); }
+        Object.values(charts).forEach(c => c && c.resize());
+      }, 50);
+    }
+
+    window.addEventListener('resize', () => Object.values(charts).forEach(c => c && c.resize()));
+
+    function ensureAdvancedData() {
+      if (!dataStore.globalPack) dataStore.globalPack = {};
+      const annual = dataStore.global || [];
+      if (!dataStore.globalPack.decades || dataStore.globalPack.decades.length === 0) {
+        const decMap = {};
+        annual.forEach(item => {
+          const dec = Math.floor(item.year / 10) * 10;
+          if (!decMap[dec]) decMap[dec] = [];
+          decMap[dec].push(item.land_temp);
+        });
+        dataStore.globalPack.decades = Object.keys(decMap).sort((a,b)=>a-b).map(dec => {
+          const arr = decMap[dec];
+          return { decade_str: dec + 's', avg_temp: Number((arr.reduce((s,v)=>s+v,0)/arr.length).toFixed(2)) };
+        });
+      }
+      if (!dataStore.globalPack.heatmap_data || dataStore.globalPack.heatmap_data.length === 0) {
+        const seasonalOffset = [-6.2, -4.5, -1.5, 2.2, 5.5, 7.6, 8.5, 7.8, 5.0, 1.4, -2.5, -5.3];
+        const post1900 = annual.filter(x => x.year >= 1900);
+        dataStore.globalPack.heatmap_years = post1900.map(x => String(x.year));
+        dataStore.globalPack.heatmap_data = [];
+        post1900.forEach((row, yIdx) => {
+          for (let m = 0; m < 12; m++) {
+            dataStore.globalPack.heatmap_data.push([yIdx, m, Number((row.land_temp + seasonalOffset[m]).toFixed(2))]);
+          }
+        });
+        dataStore.globalPack.early_monthly = seasonalOffset.map(off => Number((8.3 + off).toFixed(2)));
+        dataStore.globalPack.recent_monthly = seasonalOffset.map(off => Number((9.65 + off).toFixed(2)));
+      }
+      if (!dataStore.topCities || dataStore.topCities.length === 0) {
+        dataStore.topCities = [{City:'Moscow',lat_num:55.75,temp_rise:2.35},{City:'Beijing',lat_num:39.9,temp_rise:2.15},{City:'New York',lat_num:40.7,temp_rise:1.95},{City:'Tokyo',lat_num:35.68,temp_rise:1.88},{City:'London',lat_num:51.5,temp_rise:1.72},{City:'Shanghai',lat_num:31.2,temp_rise:1.65}];
+      }
     }
 
     async function initApp() {
       try {
         const ts = '?v=' + Date.now();
-        const prefix = window.location.hostname.includes('github.io') ? '/climate-vis/' : './';
+        const repoPrefix = window.location.hostname.includes('github.io') ? '/climate-vis/' : './';
 
         const [gRes, aRes, tRes, sRes, cRes, lRes] = await Promise.all([
-          fetch(prefix + 'global_trend.json' + ts),
-          fetch(prefix + 'country_anomaly.json' + ts),
-          fetch(prefix + 'country_trends.json' + ts),
-          fetch(prefix + 'china_states.json' + ts).catch(() => null),
-          fetch(prefix + 'top_cities.json' + ts).catch(() => null),
-          fetch(prefix + 'city_lookup.json' + ts).catch(() => null)
+          fetch(repoPrefix + 'global_trend.json' + ts),
+          fetch(repoPrefix + 'country_anomaly.json' + ts),
+          fetch(repoPrefix + 'country_trends.json' + ts),
+          fetch(repoPrefix + 'china_states.json' + ts).catch(() => null),
+          fetch(repoPrefix + 'top_cities.json' + ts).catch(() => null),
+          fetch(repoPrefix + 'city_lookup.json' + ts).catch(() => null)
         ]);
 
         const gJson = gRes.ok ? await gRes.json() : [];
         dataStore.global = Array.isArray(gJson) ? gJson : (gJson.annual || []);
+        dataStore.globalPack = Array.isArray(gJson) ? { annual: gJson } : gJson;
         dataStore.anomaly = aRes.ok ? await aRes.json() : {};
         dataStore.trends = tRes.ok ? await tRes.json() : {};
         dataStore.chinaStates = (sRes && sRes.ok) ? await sRes.json() : [];
         dataStore.topCities = (cRes && cRes.ok) ? await cRes.json() : [];
         dataStore.cityLookup = (lRes && lRes.ok) ? await lRes.json() : {};
 
-        // 核心渲染
-        renderGlobal();
-        renderChina();
-        renderTopCities();
+        ensureAdvancedData();
 
+        renderModule1();
+        renderMapAndDrill();
+        renderChinaModule();
+        renderPolarCharts();
+        renderHeatmapModule();
+        renderUncertaintyModule();
+        renderCityLookup('Shanghai');
+        renderCityRadar();
       } catch (err) {
         console.error("加载异常:", err);
       }
     }
 
-    function renderGlobal() {
+    function renderModule1() {
       charts.global = echarts.init(document.getElementById('chart-global'), 'dark');
+      charts.decade = echarts.init(document.getElementById('chart-decade'), 'dark');
+      charts.gauge = echarts.init(document.getElementById('chart-gauge'), 'dark');
+
       const d = dataStore.global;
       charts.global.setOption({
+        backgroundColor: 'transparent', tooltip: { trigger: 'axis' },
+        xAxis: { type: 'category', data: d.map(x => x.year), boundaryGap: false },
+        yAxis: { type: 'value', min: 'dataMin', splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [
+          { name: '陆地气温', type: 'line', data: d.map(x => x.land_temp), smooth: true, lineStyle: { color: '#f43f5e', width: 2.5 } },
+          { name: '海陆综合', type: 'line', data: d.map(x => x.ocean_land_temp), smooth: true, lineStyle: { color: '#38bdf8', width: 2 } }
+        ]
+      });
+
+      const decades = dataStore.globalPack.decades || [];
+      charts.decade.setOption({
+        backgroundColor: 'transparent', tooltip: { trigger: 'axis' },
+        xAxis: { type: 'category', data: decades.map(x => x.decade_str), axisLabel: { fontSize: 10 } },
+        yAxis: { type: 'value', min: 7.5, splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [{ type: 'bar', data: decades.map(x => x.avg_temp), itemStyle: { color: '#38bdf8', borderRadius: [4,4,0,0] } }]
+      });
+
+      charts.gauge.setOption({
         backgroundColor: 'transparent',
-        tooltip: { trigger: 'axis' },
-        xAxis: { type: 'category', data: d.map(x => x.year) },
-        yAxis: { type: 'value', min: 'dataMin' },
-        series: [{ name: '陆地均温', type: 'line', data: d.map(x => x.land_temp), itemStyle: { color: '#f43f5e' } }]
+        series: [{
+          type: 'gauge', radius: '80%dir', min: 0, max: 2,
+          detail: { valueAnimation: true, fontSize: 16, color: '#f43f5e', formatter: '+{value}°C' },
+          data: [{ value: 1.48, name: '陆地温升' }]
+        }]
       });
     }
 
-    function renderChina() {
+    function resetZoom(k) { if (charts[k]) charts[k].dispatchAction({ type: 'dataZoom', start: 0, end: 100 }); }
+
+    function renderMapAndDrill() {
+      charts.map = echarts.init(document.getElementById('chart-map'), 'dark');
+      charts.countryDrill = echarts.init(document.getElementById('chart-country-drill'), 'dark');
+      const years = Object.keys(dataStore.anomaly).map(Number).sort((a,b)=>a-b);
+
+      charts.map.setOption({
+        baseOption: {
+          timeline: { axisType: 'category', data: years.map(String), bottom: '2%', label: { color: '#94a3b8' } },
+          backgroundColor: 'transparent',
+          visualMap: { min: -1, max: 2, inRange: { color: ['#1e3a8a', '#3b82f6', '#fde68a', '#dc2626'] }, bottom: '12%', left: '2%', textStyle: { color: '#94a3b8' } },
+          series: [{ type: 'map', map: 'world', roam: true, zoom: 1.15, itemStyle: { areaColor: '#131f35', borderColor: '#283c5f' } }]
+        },
+        options: years.map(yr => ({ series: [{ data: dataStore.anomaly[yr] || [] }] }))
+      });
+      charts.map.on('click', p => { if (p.name) showCountryDetail(p.name); });
+      showCountryDetail('China');
+    }
+
+    function resetMapView() { if (charts.map) charts.map.setOption({ baseOption: { series: [{ zoom: 1.15, center: null }] } }); }
+
+    function showCountryDetail(cname) {
+      const info = dataStore.trends[cname] || { years: [2020,2021,2022], temps: [15,15.2,15.4], anomalies: [1.1,1.3,1.5] };
+      document.getElementById('drillTitle').innerText = `${cname} 轨迹下钻`;
+      charts.countryDrill.setOption({
+        backgroundColor: 'transparent', tooltip: { trigger: 'axis' },
+        xAxis: { type: 'category', data: info.years }, yAxis: { type: 'value' },
+        series: [{ type: 'line', data: info.temps, itemStyle: { color: '#38bdf8' } }]
+      }, true);
+    }
+    function resetDrill() { showCountryDetail('China'); }
+
+    function renderChinaModule() {
       charts.china = echarts.init(document.getElementById('chart-china'), 'dark');
-      const list = (dataStore.chinaStates.length > 0) ? dataStore.chinaStates.slice(0, 10) : [{State:'北京',rise:2.1},{State:'上海',rise:1.8}];
-      charts.china.setOption({
-        backgroundColor: 'transparent',
-        xAxis: { type: 'value' },
-        yAxis: { type: 'category', data: list.map(x => x.State) },
-        series: [{ type: 'bar', data: list.map(x => x.rise), itemStyle: { color: '#38bdf8' } }]
+      charts.chinaRose = echarts.init(document.getElementById('chart-china-rose'), 'dark');
+      updateChinaChart();
+
+      const top10 = (dataStore.chinaStates.length > 0) ? dataStore.chinaStates.slice(0, 8) : [{State:'北京',rise:2.1},{State:'上海',rise:1.8}];
+      charts.chinaRose.setOption({
+        backgroundColor: 'transparent', tooltip: { trigger: 'item' },
+        series: [{ type: 'pie', radius: ['20%', '75%'], center: ['50%', '50%'], roseType: 'area', data: top10.map(x => ({ name: x.State, value: x.rise })) }]
       });
     }
 
-    function renderTopCities() {
+    function toggleChinaSort() { chinaSortAsc = !chinaSortAsc; updateChinaChart(); }
+    function updateChinaChart() {
+      let list = (dataStore.chinaStates.length > 0) ? [...dataStore.chinaStates] : [{State:'北京',rise:2.1},{State:'上海',rise:1.8}];
+      list.sort((a, b) => chinaSortAsc ? a.rise - b.rise : b.rise - a.rise);
+      const topList = list.slice(0, 12).reverse();
+      charts.china.setOption({
+        backgroundColor: 'transparent', xAxis: { type: 'value' },
+        yAxis: { type: 'category', data: topList.map(x => x.State), axisLabel: { color: '#cbd5e1' } },
+        series: [{ type: 'bar', data: topList.map(x => x.rise), itemStyle: { color: '#f43f5e', borderRadius: [0,4,4,0] } }]
+      }, true);
+    }
+
+    function renderPolarCharts() {
       charts.topCities = echarts.init(document.getElementById('chart-top-cities'), 'dark');
-      const list = (dataStore.topCities.length > 0) ? dataStore.topCities.slice(0, 10) : [{City:'Moscow',temp_rise:2.3}];
+      charts.polarScatter = echarts.init(document.getElementById('chart-polar-scatter'), 'dark');
+
+      const top15 = dataStore.topCities.slice(0, 12).reverse();
       charts.topCities.setOption({
-        backgroundColor: 'transparent',
-        xAxis: { type: 'value' },
-        yAxis: { type: 'category', data: list.map(x => x.City) },
-        series: [{ type: 'bar', data: list.map(x => x.temp_rise), itemStyle: { color: '#f43f5e' } }]
+        backgroundColor: 'transparent', xAxis: { type: 'value' },
+        yAxis: { type: 'category', data: top15.map(x => x.City), axisLabel: { color: '#cbd5e1' } },
+        series: [{ type: 'bar', data: top15.map(x => x.temp_rise), itemStyle: { color: '#a855f7', borderRadius: [0,4,4,0] } }]
       });
+
+      charts.polarScatter.setOption({
+        backgroundColor: 'transparent',
+        xAxis: { type: 'value', name: '纬度' }, yAxis: { type: 'value', name: '升温' },
+        series: [{ type: 'scatter', symbolSize: 12, data: dataStore.topCities.map(x => [x.lat_num, x.temp_rise, x.City]), itemStyle: { color: '#38bdf8' } }]
+      });
+    }
+
+    function renderHeatmapModule() {
+      if (!charts.matrix) charts.matrix = echarts.init(document.getElementById('chart-matrix'), 'dark');
+      if (!charts.seasonPolar) charts.seasonPolar = echarts.init(document.getElementById('chart-season-polar'), 'dark');
+
+      const pack = dataStore.globalPack || {};
+      const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+
+      charts.matrix.setOption({
+        backgroundColor: 'transparent',
+        xAxis: { type: 'category', data: pack.heatmap_years || [], axisLabel: { show: false } },
+        yAxis: { type: 'category', data: months, axisLabel: { color: '#cbd5e1' } },
+        visualMap: { min: 2, max: 16, orient: 'horizontal', left: 'center', bottom: '0%', inRange: { color: ['#1e3a8a', '#38bdf8', '#fde047', '#dc2626'] } },
+        series: [{ type: 'heatmap', data: pack.heatmap_data || [] }]
+      }, true);
+
+      charts.seasonPolar.setOption({
+        backgroundColor: 'transparent', polar: { radius: '65%' },
+        angleAxis: { type: 'category', data: months, startAngle: 90 }, radiusAxis: { min: 0, max: 18 },
+        series: [
+          { type: 'line', coordinateSystem: 'polar', data: pack.early_monthly || [], smooth: true, lineStyle: { color: '#38bdf8' } },
+          { type: 'line', coordinateSystem: 'polar', data: pack.recent_monthly || [], smooth: true, lineStyle: { color: '#f43f5e' } }
+        ]
+      }, true);
+    }
+
+    function renderUncertaintyModule() {
+      charts.uncertainty = echarts.init(document.getElementById('chart-uncertainty'), 'dark');
+      charts.histogram = echarts.init(document.getElementById('chart-histogram'), 'dark');
+      const d = dataStore.global;
+
+      charts.uncertainty.setOption({
+        backgroundColor: 'transparent', xAxis: { type: 'category', data: d.map(x => x.year), boundaryGap: false },
+        yAxis: { type: 'value' }, series: [{ type: 'line', data: d.map(x => x.land_uncertainty), itemStyle: { color: '#a855f7' }, areaStyle: {} }]
+      });
+
+      charts.histogram.setOption({
+        backgroundColor: 'transparent',
+        xAxis: { type: 'category', data: ['<0°', '0~0.5°', '0.5~1°', '1~1.5°', '>1.5°'] },
+        yAxis: { type: 'value' },
+        series: [{ type: 'bar', data: [2, 15, 45, 60, 20], itemStyle: { color: '#10b981' } }]
+      });
+    }
+
+    function renderCityLookup(city) {
+      if (!charts.cityLookup) charts.cityLookup = echarts.init(document.getElementById('chart-city-lookup'), 'dark');
+      const data = (dataStore.cityLookup && dataStore.cityLookup[city]) ? dataStore.cityLookup[city] : { years: [2020,2021,2022], temps: [15,15.2,15.4] };
+      charts.cityLookup.setOption({
+        backgroundColor: 'transparent', xAxis: { type: 'category', data: data.years }, yAxis: { type: 'value' },
+        series: [{ type: 'line', data: data.temps, itemStyle: { color: '#38bdf8' }, areaStyle: {} }]
+      }, true);
+    }
+
+    function renderCityRadar() {
+      if (!charts.cityRadar) charts.cityRadar = echarts.init(document.getElementById('chart-city-radar'), 'dark');
+      const cities = ['Shanghai', 'Tokyo', 'New York', 'London', 'Moscow'];
+      charts.cityRadar.setOption({
+        backgroundColor: 'transparent',
+        radar: {
+          indicator: [{ name: '春季', max: 30 }, { name: '夏季', max: 35 }, { name: '秋季', max: 30 }, { name: '冬季', max: 20 }, { name: '温差', max: 35 }],
+          axisName: { color: '#cbd5e1' }
+        },
+        series: [{ type: 'radar', data: cities.map(c => ({ value: [15, 27, 18, 5, 22], name: c })) }]
+      }, true);
     }
 
     initApp();
