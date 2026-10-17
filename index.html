@@ -607,13 +607,17 @@
 
     async function initApp() {
       try {
+        const ts = '?v=' + Date.now();
+        // 自动适配 GitHub Pages 线上子路径 (/climate-vis/) 或本地路径 (./)
+        const repoPrefix = window.location.hostname.includes('github.io') ? '/climate-vis/' : './';
+
         const [gRes, aRes, tRes, sRes, cRes, lRes] = await Promise.all([
-          fetch('global_trend.json'),
-          fetch('country_anomaly.json'),
-          fetch('country_trends.json'),
-          fetch('china_states.json').catch(() => null),
-          fetch('top_cities.json'),
-          fetch('city_lookup.json').catch(() => null)
+          fetch(repoPrefix + 'global_trend.json' + ts),
+          fetch(repoPrefix + 'country_anomaly.json' + ts),
+          fetch(repoPrefix + 'country_trends.json' + ts),
+          fetch(repoPrefix + 'china_states.json' + ts).catch(() => null),
+          fetch(repoPrefix + 'top_cities.json' + ts),
+          fetch(repoPrefix + 'city_lookup.json' + ts).catch(() => null)
         ]);
 
         const gJson = await gRes.json();
